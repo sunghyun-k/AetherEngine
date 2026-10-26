@@ -121,6 +121,15 @@ the public-API contract.
 
 ### Fixed
 
+- **MP4s whose writer dropped `ctts` and forced the decode ladder monotonic play in order.**
+  Such a file reports `PTS == DTS` on every sample, keeps each anchor on its own presentation time
+  and pushes each B picture 1001 ticks past the picture decoded before it, so the ladder has no single
+  step and the #409 probe left the stream untouched ("decode ladder is not uniform"). Both routes then
+  showed the B pictures in decode order, as QuickTime and the Files app do. The repair now takes the
+  step from the stream's average frame rate, remeasures it on the anchors and rebuilds DTS from each
+  picture's decode slot, under the same picture-order checks. `Scripts/make-clamped-ladder-fixture.sh`
+  generates a twin pair. See `docs/formats.md`.
+
 - **A refused HDR master no longer latches when the panel is shown to present HDR (AE#887).**
   A live PQ master refused with -11868 on an Apple TV whose output was fixed to 4K HDR latched the
   process-wide panel refusal, so every later HDR title went media-direct without its subtitle
